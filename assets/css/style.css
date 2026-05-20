@@ -1,0 +1,154 @@
+:root {
+  --app-bg: #f3f6f3;
+  --app-nav: #1d2a22;
+  --app-hero-start: #2f6f4f;
+  --app-hero-end: #1f5b3f;
+  --card-border: #dbe4f0;
+  --ink: #1f2a24;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--ink);
+}
+
+.app-nav {
+  background-color: var(--app-nav);
+}
+
+.hero-card {
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--app-hero-start), var(--app-hero-end));
+  box-shadow: 0 10px 22px rgba(31, 91, 63, 0.25);
+}
+
+.app-card {
+  border: 1px solid #d8e4d9;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.app-link-card {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid var(--card-border);
+}
+
+.app-link-card:hover {
+  background: #eef6ff;
+}
+
+.output-box {
+  border-radius: 10px;
+  border: 1px solid #ced6dd;
+  background: #0b1220;
+  color: #d7e2f0;
+  min-height: 120px;
+  padding: 10px;
+  margin: 0;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.coach-steps {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+
+.coach-step-dot {
+  height: 8px;
+  border-radius: 999px;
+  background: #d9dfd9;
+}
+
+.coach-step-dot.active {
+  background: #2f6f4f;
+}
+
+.coach-panel {
+  display: none;
+}
+
+.coach-panel.active {
+  display: block;
+}
+
+.task-item {
+  border: 1px solid #d8e4d9;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.score-ring {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#2f6f4f 0 78%, #d4e1d5 78% 100%);
+}
+
+.score-ring-inner {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #d8e4d9;
+  border-radius: 999px;
+  background: #fff;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.quick-chip:hover {
+  background: #eef6ef;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #d8e4d9;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 1040;
+}
+
+.bottom-nav a {
+  font-size: 0.76rem;
+  color: #2c3b31;
+  text-decoration: none;
+  text-align: center;
+  padding: 10px 4px;
+}
+
+.app-main {
+  padding-bottom: 84px;
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    padding-bottom: 24px;
+  }
+}

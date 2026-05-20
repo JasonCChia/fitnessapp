@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Meal Plan | FitDiscipline{% endblock %}
+{% block page_id %}meal_plan{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-1">Meal Plan</h1>
+<p class="text-muted mb-3">Create, list, and activate meal plans.</p>
+
+<div class="card app-card shadow-sm mb-3">
+  <div class="card-body">
+    <form id="meal-plan-form" class="row g-2">
+      <div class="col-md-3"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+      <div class="col-md-3"><input class="form-control" name="target_calories" type="number" placeholder="Target calories" required /></div>
+      <div class="col-md-2"><input class="form-control" name="target_protein_g" type="number" placeholder="Protein" required /></div>
+      <div class="col-md-2"><input class="form-control" name="target_carbs_g" type="number" placeholder="Carbs" required /></div>
+      <div class="col-md-2"><input class="form-control" name="target_fat_g" type="number" placeholder="Fat" required /></div>
+      <div class="col-md-3">
+        <select class="form-select" name="status">
+          <option value="draft">draft</option>
+          <option value="active">active</option>
+        </select>
+      </div>
+      <div class="col-md-3 form-check mt-2 ms-2"><input class="form-check-input" type="checkbox" name="ai_generated" id="mp_ai_generated"><label class="form-check-label" for="mp_ai_generated">AI generated</label></div>
+      <div class="col-12"><button class="btn btn-primary" type="submit">Create Meal Plan</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="card app-card shadow-sm">
+  <div class="card-body">
+    <form id="meal-plan-list-form" class="row g-2 mb-3">
+      <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+      <div class="col-md-4"><input class="form-control" name="status" placeholder="status filter (optional)" /></div>
+      <div class="col-md-4"><button class="btn btn-outline-primary w-100" type="submit">Load Plans</button></div>
+    </form>
+    <div class="row g-2 mb-3">
+      <div class="col-md-4"><input id="activate-meal-user-id" class="form-control" placeholder="User ID" /></div>
+      <div class="col-md-4"><input id="activate-meal-plan-id" class="form-control" placeholder="Plan ID to activate" /></div>
+      <div class="col-md-4"><button id="btn-activate-meal-plan" class="btn btn-outline-success w-100" type="button">Activate Plan</button></div>
+    </div>
+    <pre id="meal-plan-output" class="output-box mb-0"></pre>
+  </div>
+</div>
+{% endblock %}

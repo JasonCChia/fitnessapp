@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | FitDiscipline{% endblock %}
+{% block page_id %}settings{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-1">Settings</h1>
+<p class="text-muted mb-3">Atur profil, AI coach, reminder, dan data.</p>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Profile & AI Coach</h2>
+        <form id="settings-user-form" class="row g-2">
+          <div class="col-12"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+          <div class="col-12">
+            <select class="form-select" name="ai_provider">
+              <option value="anthropic">Anthropic</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Gemini</option>
+            </select>
+          </div>
+          <div class="col-12"><input class="form-control" name="api_key_ref" placeholder="keychain:fitdiscipline_apikey" /></div>
+          <div class="col-12"><button class="btn btn-primary" type="submit">Simpan Pengaturan AI</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Prompt & Data</h2>
+        <form id="settings-prompt-form" class="row g-2 mb-3">
+          <div class="col-12"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+          <div class="col-12"><input class="form-control" name="method_name" value="generateWorkoutPlan" /></div>
+          <div class="col-12"><button class="btn btn-outline-primary" type="submit">Lihat Prompt Config</button></div>
+        </form>
+        <div class="d-flex gap-2 flex-wrap mb-2">
+          <button class="btn btn-outline-secondary btn-sm" type="button">Export JSON</button>
+          <button class="btn btn-outline-danger btn-sm" type="button">Reset Data</button>
+        </div>
+        <pre id="settings-output" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

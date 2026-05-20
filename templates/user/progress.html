@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Progress | FitDiscipline{% endblock %}
+{% block page_id %}progress{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-1">Progress</h1>
+<p class="text-muted mb-3">Lihat trend berat, konsistensi harian, dan milestone kamu.</p>
+
+<div class="card app-card shadow-sm mb-3">
+  <div class="card-body">
+    <form id="progress-query-form" class="row g-2">
+      <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+      <div class="col-md-4"><input class="form-control" type="date" name="from_date" /></div>
+      <div class="col-md-4"><input class="form-control" type="date" name="to_date" /></div>
+      <div class="col-12"><button class="btn btn-primary" type="submit">Muat Progress</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Weight Trend</h2>
+        <p class="small text-muted">Target: turun stabil 0.3 - 0.8 kg / minggu.</p>
+        <pre id="progress-weight-logs" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Discipline Score</h2>
+        <p class="small text-muted">Weekly average + consistency snapshot.</p>
+        <pre id="progress-day-scores" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Active Program</h2>
+        <p class="small text-muted">Plan aktif yang sedang dijalankan.</p>
+        <pre id="progress-active-program" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

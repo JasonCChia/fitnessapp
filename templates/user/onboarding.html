@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding | FitDiscipline{% endblock %}
+{% block page_id %}onboarding{% endblock %}
+
+{% block content %}
+<div class="card app-card shadow-sm">
+  <div class="card-body p-4 p-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h1 class="h5 mb-0">Setup Coach Pribadi Kamu</h1>
+      <span class="small text-muted" id="onboarding-step-label">Step 1/8</span>
+    </div>
+    <p class="text-muted small">Kita setup dalam ±2 menit.</p>
+    <div class="coach-steps mb-4" id="onboarding-progress">
+      <div class="coach-step-dot active"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+      <div class="coach-step-dot"></div>
+    </div>
+
+    <form id="onboarding-form" class="row g-3">
+      <section class="coach-panel active" data-step="1">
+        <h2 class="h4 mb-2">Selamat datang di FitDiscipline</h2>
+        <p class="text-muted mb-0">AI coach akan bantu workout dan nutrisi berdasarkan kondisi tubuhmu.</p>
+      </section>
+
+      <section class="coach-panel" data-step="2">
+        <h3 class="h6 mb-3">Data dasar tubuh</h3>
+        <div class="row g-2">
+          <div class="col-md-6"><input class="form-control" name="name" placeholder="Nama" required /></div>
+          <div class="col-md-6"><input class="form-control" name="email" placeholder="Email (opsional)" /></div>
+          <div class="col-md-4"><input class="form-control" name="age" type="number" min="10" placeholder="Umur" /></div>
+          <div class="col-md-4">
+            <select class="form-select" name="gender" required>
+              <option value="">Jenis kelamin</option>
+              <option value="male">Pria</option>
+              <option value="female">Wanita</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
+          <div class="col-md-4"><input class="form-control" type="date" name="birth_date" required /></div>
+          <div class="col-md-6"><input class="form-control" name="height_cm" type="number" step="0.1" placeholder="Tinggi badan (cm)" required /></div>
+          <div class="col-md-6"><input class="form-control" name="body_weight_kg" type="number" step="0.1" placeholder="Berat badan (kg)" required /></div>
+        </div>
+      </section>
+
+      <section class="coach-panel" data-step="3">
+        <h3 class="h6 mb-3">Lifestyle harian</h3>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="small text-muted">Aktivitas harian</label>
+            <div class="d-grid gap-2 mt-1">
+              <label class="task-item"><input type="radio" name="activity_level" value="sedentary" required /> Jarang bergerak</label>
+              <label class="task-item"><input type="radio" name="activity_level" value="light" /> Ringan</label>
+              <label class="task-item"><input type="radio" name="activity_level" value="moderate" /> Sedang</label>
+              <label class="task-item"><input type="radio" name="activity_level" value="active" /> Aktif</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="small text-muted">Target tidur per hari</label>
+            <input class="form-control mt-1" name="sleep_target_hours" type="number" step="0.1" value="8" required />
+          </div>
+        </div>
+      </section>
+
+      <section class="coach-panel" data-step="4">
+        <h3 class="h6 mb-3">Tujuan utama kamu</h3>
+        <div class="row g-2">
+          <div class="col-md-4"><label class="task-item w-100"><input type="radio" name="goal_type" value="cut" required /> 🔥 Turun Berat</label></div>
+          <div class="col-md-4"><label class="task-item w-100"><input type="radio" name="goal_type" value="bulk" /> 💪 Naik Massa Otot</label></div>
+          <div class="col-md-4"><label class="task-item w-100"><input type="radio" name="goal_type" value="maintain" /> ⚖️ Jaga Berat</label></div>
+          <div class="col-md-6"><input class="form-control" name="goal_weight_kg" type="number" step="0.1" placeholder="Target berat (kg)" required /></div>
+          <div class="col-md-6"><input class="form-control" name="goal_deadline_date" type="date" /></div>
+        </div>
+      </section>
+
+      <section class="coach-panel" data-step="5">
+        <h3 class="h6 mb-3">Preferensi makanan</h3>
+        <div class="row g-2">
+          <div class="col-md-6"><input class="form-control" name="food_restriction" placeholder="Makanan yang dihindari (contoh: udang)" /></div>
+          <div class="col-md-3">
+            <select class="form-select" name="food_category">
+              <option value="allergy">Alergi</option>
+              <option value="disliked">Tidak suka</option>
+              <option value="intolerance">Intoleransi</option>
+              <option value="religious">Religius</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" name="food_severity">
+              <option value="hard">Wajib hindari</option>
+              <option value="soft">Prefer hindari</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="coach-panel" data-step="6">
+        <h3 class="h6 mb-3">Preferensi workout</h3>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="small text-muted">Lokasi workout</label>
+            <div class="d-grid gap-2 mt-1">
+              <label class="task-item"><input type="radio" name="workout_location" value="home" /> Rumah</label>
+              <label class="task-item"><input type="radio" name="workout_location" value="gym" /> Gym</label>
+              <label class="task-item"><input type="radio" name="workout_location" value="mixed" /> Campuran</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="small text-muted">Durasi ideal per sesi</label>
+            <select class="form-select mt-1" name="session_duration">
+              <option value="20">20 menit</option>
+              <option value="40" selected>40 menit</option>
+              <option value="60">60 menit</option>
+              <option value="90">90 menit</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="coach-panel" data-step="7">
+        <h3 class="h6 mb-3">Reminder harian</h3>
+        <p class="text-muted">Biar tetap disiplin, kita bisa kirim pengingat workout dan recap harian.</p>
+        <label class="task-item"><input type="checkbox" name="reminder_opt_in" checked /> Aktifkan reminder</label>
+      </section>
+
+      <section class="coach-panel" data-step="8">
+        <h3 class="h6 mb-3">Aktifkan AI Coach Premium (Opsional)</h3>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <select class="form-select" name="ai_provider">
+              <option value="anthropic">Anthropic</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Gemini</option>
+            </select>
+          </div>
+          <div class="col-md-6"><input class="form-control" name="api_key_ref" placeholder="keychain:fitdiscipline_apikey" /></div>
+          <div class="col-md-6"><input class="form-control" name="fitness_level" type="number" min="1" max="5" value="1" /></div>
+          <div class="col-md-6">
+            <select class="form-select" name="fitness_source">
+              <option value="onboarding">onboarding</option>
+              <option value="manual">manual</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="col-12 d-flex justify-content-between align-items-center mt-4">
+        <button class="btn btn-outline-secondary" type="button" id="onboarding-back">Kembali</button>
+        <button class="btn btn-primary" type="button" id="onboarding-next">Lanjut</button>
+        <button class="btn btn-success d-none" type="submit" id="onboarding-submit">Selesaikan Setup</button>
+      </div>
+    </form>
+
+    <pre id="onboarding-output" class="output-box mt-3 mb-0"></pre>
+  </div>
+</div>
+{% endblock %}

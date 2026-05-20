@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Review | FitDiscipline{% endblock %}
+{% block page_id %}weekly_review{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-1">Weekly Review</h1>
+<p class="text-muted mb-3">Review mingguan dan cek trigger review bulanan.</p>
+
+<div class="card app-card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-md-4"><input id="review-user-id" class="form-control" placeholder="User ID" /></div>
+      <div class="col-md-4"><button id="btn-weekly-review" class="btn btn-primary w-100" type="button">Lihat Review Minggu Ini</button></div>
+      <div class="col-md-4"><button id="btn-monthly-trigger" class="btn btn-outline-primary w-100" type="button">Cek Review Bulanan</button></div>
+      <div class="col-md-4"><button id="btn-monthly-mark-done" class="btn btn-outline-success w-100" type="button">Tandai Review Selesai</button></div>
+      <div class="col-md-4"><button id="btn-fitness-history" class="btn btn-outline-secondary w-100" type="button">Lihat Fitness Snapshot</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Ringkasan Coach</h2>
+        <p class="small text-muted">Berat, workout completion, dan stabilitas kalori.</p>
+        <pre id="weekly-review-output" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Review Bulanan</h2>
+        <p class="small text-muted">Trigger 28 hari + status update review.</p>
+        <pre id="monthly-review-output" class="output-box mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}AI Proposal | FitDiscipline{% endblock %}
+{% block page_id %}ai_setup{% endblock %}
+
+{% block content %}
+<section class="hero-card p-4 mb-3">
+  <h1 class="h4 mb-2">AI sedang menyiapkan programmu</h1>
+  <div class="small">
+    <div>✓ Analisa profil tubuh</div>
+    <div>✓ Hitung kebutuhan kalori</div>
+    <div>⏳ Menyusun workout plan</div>
+    <div>⏳ Menyiapkan meal plan</div>
+  </div>
+</section>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Target Harian</h2>
+        <div class="task-item mb-2">🔥 2.100 kcal</div>
+        <div class="task-item mb-2">💪 Protein 145g</div>
+        <div class="task-item">😴 Tidur 8 jam</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">Preview Program</h2>
+        <div class="task-item mb-2">Senin: Upper Body</div>
+        <div class="task-item mb-2">Selasa: Cardio</div>
+        <div class="task-item mb-2">Rabu: Rest Day</div>
+        <div class="task-item">Kamis: Legs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card app-card shadow-sm">
+      <div class="card-body">
+        <form id="proposal-apply-form" class="row g-2">
+          <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
+          <div class="col-md-4"><input class="form-control" name="target_weight_kg" type="number" step="0.1" placeholder="Target berat" required /></div>
+          <div class="col-md-4">
+            <select class="form-select" name="goal_type">
+              <option value="cut">Turun Berat</option>
+              <option value="bulk">Naik Otot</option>
+              <option value="maintain">Maintain</option>
+            </select>
+          </div>
+          <div class="col-md-3"><input class="form-control" name="target_calories" type="number" value="2100" /></div>
+          <div class="col-md-3"><input class="form-control" name="target_protein_g" type="number" value="145" /></div>
+          <div class="col-md-3"><input class="form-control" name="target_carbs_g" type="number" value="230" /></div>
+          <div class="col-md-3"><input class="form-control" name="target_fat_g" type="number" value="70" /></div>
+          <div class="col-12 d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary" type="button" id="btn-request-revision">Minta Revisi</button>
+            <button class="btn btn-outline-primary" type="button" id="btn-edit-manual">Edit Manual</button>
+            <button class="btn btn-success" type="submit">Gunakan Program</button>
+          </div>
+        </form>
+        <pre id="proposal-output" class="output-box mt-3 mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
