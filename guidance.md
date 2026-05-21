@@ -1,7 +1,9 @@
 # FitDiscipline
 ## AI-Powered Workout & Nutrition Coach
-App Ideation Document v1.3
+App Ideation Document v1.5
 
+> **Changelog v1.5:** AI runtime sekarang memakai global Groq API key dari `.env` (`GROQ_API_KEY`) dengan model default `openai/gpt-oss-120b`. Per-user API key/provider tidak lagi dipakai untuk provider call. Backend juga mencatat token usage ke `ai_request_logs`.
+>
 > **Changelog v1.4:** Backend sekarang user-scoped dengan login berbasis email + password hash, access token, dan route guard per user. Lihat Bagian 14 untuk daftar lengkap perubahan.
 
 ---
@@ -72,7 +74,7 @@ FitDiscipline adalah personal coach berbasis AI yang membantu pengguna mencapai 
 
 ### Core Principles
 - AI sebagai coach, bukan sekadar tracker: AI analisa, propose, lalu user konfirmasi.
-- Data tersimpan di server (MySQL), diakses via backend REST API yang dikelola sendiri. Tidak ada third-party yang menyimpan data user selain AI provider yang dipilih user secara eksplisit.
+- Data tersimpan di server (MySQL), diakses via backend REST API yang dikelola sendiri. AI request diproxy backend ke provider global Groq menggunakan server-side secret dari `.env`.
 - Service abstraction: semua integrasi eksternal (AI, storage, backend) bisa diganti tanpa ubah UI.
 - Konfirmasi sebelum apply: AI tidak pernah auto-apply perubahan program tanpa persetujuan user.
 
@@ -97,7 +99,7 @@ FitDiscipline adalah personal coach berbasis AI yang membantu pengguna mencapai 
 | 1.4 | Input preferensi makan | Pantangan makanan, alergi, preferensi (vegetarian, halal, dll) |
 | 1.5 | Input preferensi workout | Lokasi (gym/rumah), alat yang tersedia, hari tersedia per minggu, durasi per sesi |
 | 1.6 | Minta izin notifikasi | Request notification permission (iOS/Android) — harus dilakukan di onboarding, bukan saat pertama kali schedule notif |
-| 1.7 | Input API Key (opsional) | User bisa pasang API key sendiri (Anthropic/OpenAI/Gemini). Disimpan via platform keychain (expo-secure-store), bukan ke storage biasa. Tanpa key, AI pakai mode terbatas |
+| 1.7 | Konfirmasi AI Coach | AI memakai provider global Groq dari backend. User tidak perlu mengisi API key pribadi |
 
 ### FASE 2 - AI Analisa & Proposal Program
 | Step | Action | Detail |
@@ -145,7 +147,7 @@ FitDiscipline adalah personal coach berbasis AI yang membantu pengguna mencapai 
 | Screen | Components | AI Actions |
 | --- | --- | --- |
 | Authentication | Register/Login form, token storage status, error state (invalid credentials/expired token) | Tidak ada (pure auth flow) |
-| Onboarding | Form step-by-step (7 langkah termasuk notif permission & API key), progress bar, validasi tiap step | Tidak ada (pure input) |
+| Onboarding | Form step-by-step (8 langkah termasuk notif permission & info AI global), progress bar, validasi tiap step | Tidak ada (pure input) |
 | AI Setup | Loading state, preview proposal (workout + menu), tombol Edit/Revisi/Confirm | `analyzeProfile`, `generateWorkoutPlan`, `generateMealPlan` |
 | Dashboard Utama | Discipline score ring, task hari ini (checklist), kalori ring, streak counter | Tidak ada (tampilkan data lokal) |
 | Log Makanan | Search makanan, card estimasi kalori + macro, riwayat makanan hari ini, toggle manual input (offline fallback) | `estimateCalories(foodName)` via `CalorieService` |
@@ -154,7 +156,7 @@ FitDiscipline adalah personal coach berbasis AI yang membantu pengguna mencapai 
 | Menu Makan | Tampilkan menu 7 hari aktif, bisa swap satu item, tombol "Minta AI Ganti" | `swapMealItem`, `reviseMealPlan` |
 | Progress & Stats | Grafik berat badan (dari `weight_logs`), grafik kalori 7/30 hari, grafik discipline score, milestone | Tidak ada (pure visualisasi) |
 | Weekly Review | Card ringkasan minggu, proposal AI (highlight perubahan), tombol Setuju/Edit/Tolak | `weeklyReview`, `adjustProgram` |
-| Settings | Profil, API Key input via secure keychain (+ test koneksi), pilih provider AI, export data (JSON), reset data | `testConnection(apiKey)` |
+| Settings | Profil, status provider global Groq, prompt config, export data (JSON), reset data | Prompt config CRUD |
 
 ---
 
@@ -164,20 +166,21 @@ Semua service di-inject sebagai dependency, bukan di-import langsung di UI.
 ### Prinsip Service Abstraction
 - Setiap service punya interface (kontrak) yang fixed.
 - Implementasi bisa berganti (misal: `RESTStorageService` -> `GraphQLStorageService`) tanpa ubah UI.
-- AI provider bisa diganti (`Anthropic` -> `OpenAI` -> `Gemini`) hanya dengan swap implementasi `AIService`.
+- Runtime AI aktif memakai provider global Groq dari backend. Provider lain boleh ditambahkan nanti di belakang `AIService`, tetapi client tidak mengatur provider/API key.
 - Testing mudah karena setiap service bisa di-mock secara independen.
 
-### Keputusan Arsitektur: AI Call dari Client, Bukan Backend
-AI call (ke Anthropic/OpenAI/Gemini) dilakukan **langsung dari client app**, bukan via backend. Keputusan ini bersifat final untuk v1:
-- API key user disimpan di device keychain (`expo-secure-store`) dan digunakan langsung dari client untuk hit AI provider.
-- API key **tidak pernah dikirim ke backend** milik kita. Backend hanya menangani data (MySQL), bukan AI proxy.
-- Konsekuensi: backend tidak perlu menyimpan atau mengelola AI credentials. Jika user tidak pasang API key, AI features dinonaktifkan (mode terbatas).
-- Auth user ke backend menggunakan mekanisme terpisah (signed access token / session token), bukan API key AI.
+### Keputusan Arsitektur: AI Call via Backend Groq Proxy
+AI call dilakukan oleh backend melalui `services/ai/*`, bukan langsung dari client. Keputusan runtime terbaru:
+- Client hanya memanggil endpoint backend seperti `POST /api/ai/revise-proposal` dan mengirim bearer token session.
+- Backend membaca `GROQ_API_KEY` dari `.env` dan memakai model default `openai/gpt-oss-120b`.
+- Per-user `users.ai_provider` dan `users.api_key_ref` tidak dipakai untuk provider call; kolom itu hanya kompatibilitas schema lama.
+- Auth user ke backend menggunakan access token/session token, terpisah dari credential AI provider.
+- Setiap AI request yang sukses dicatat ke `ai_request_logs` bersama provider, model, payload ringkas, status, dan token usage.
 
 ### Daftar Service & Interface
 | Service | Interface | Input | Output |
 | --- | --- | --- | --- |
-| AIService | `analyzeProfile(profile: UserProfile)`, `generateWorkoutPlan(profile: UserProfile, preferences: WorkoutPreferences)`, `generateMealPlan(profile: UserProfile, preferences: FoodPreferences, targetCalories: number)`, `estimateCalories(foodName: string)`, `weeklyReview(logs: WeekLog)`, `reviseWorkoutPlan(plan: WorkoutPlan, feedback: string)`, `swapMealItem(plan: MealPlan, day: number, meal: string, feedback: string)` | Sesuai signature | Structured JSON `{ status, data, error, tokensUsed }` |
+| AIService | `analyzeProfile(profile: UserProfile)`, `generateWorkoutPlan(profile: UserProfile, preferences: WorkoutPreferences)`, `generateMealPlan(profile: UserProfile, preferences: FoodPreferences, targetCalories: number)`, `estimateCalories(foodName: string)`, `weeklyReview(logs: WeekLog)`, `reviseWorkoutPlan(plan: WorkoutPlan, feedback: string)`, `swapMealItem(plan: MealPlan, day: number, meal: string, feedback: string)` | Sesuai signature | Structured JSON `{ status, data, error, usage, model }` |
 | StorageService | `get(key)`, `set(key, value)`, `delete(key)`, `listKeys(prefix)` | Key string + value | Value/null |
 | CalorieService | `estimate(foodName)`, `getMacros(food)`, `searchFood(query)` | Food name/query | Kalori + macro breakdown. Secara internal memanggil `AIService.estimateCalories` jika online; fallback ke local database jika offline. `AIService` tidak dipanggil langsung dari UI untuk fitur ini. |
 | WorkoutService | `getActivePlan()`, `savePlan(plan)`, `logSession(session)`, `getHistory(range)` | Plan/Session object | Plan atau history array |
@@ -198,19 +201,21 @@ CalorieService.estimate(foodName)
 Local database minimal: top ~500 makanan umum Indonesia (nasi putih, nasi goreng, ayam goreng, tempe, tahu, dll) disimpan sebagai JSON bundle di app assets.
 
 ### AI Provider Abstraction
-`AIService` adalah interface. Implementasinya bisa:
-- `AnthropicAIService`: pakai claude-sonnet-4 via Anthropic API.
-- `OpenAIService`: pakai gpt-4o via OpenAI API.
-- `GeminiAIService`: pakai gemini-pro via Google AI.
+`AIService` adalah interface backend. Runtime aktif:
+- `GroqAIService` / `ProviderClient`: memakai Groq OpenAI-compatible Chat Completions API.
 - `MockAIService`: untuk testing, return data dummy tanpa API call.
+- Provider lain boleh ditambahkan lagi nanti, tetapi tetap di sisi backend dan tetap tidak mengekspos secret ke client.
 
-Semua implementasi return format yang sama: `{ status, data, error, tokensUsed }`
+Semua implementasi return format yang sama: `{ status, data, error, usage, model }`
 
-### API Key Security
-API key user digunakan **langsung dari client** untuk memanggil AI provider. Tidak pernah melewati backend kita.
-- Disimpan via `expo-secure-store` (iOS Keychain + Android Keystore) — tidak pernah di AsyncStorage atau database.
-- Kolom `api_key_ref` di tabel `users` hanya menyimpan referensi string (e.g. `"keychain:fitdiscipline_apikey"`), bukan nilai key-nya.
-- Backend auth user menggunakan access token yang terpisah dari API key AI — keduanya tidak boleh dicampur.
+### AI Credential Security
+AI credential adalah server-side secret, bukan setting user.
+- `GROQ_API_KEY` wajib disimpan di `.env` server dan tidak boleh dikirim ke client.
+- `GROQ_MODEL` default: `openai/gpt-oss-120b`.
+- `GROQ_TEMPERATURE` default: `1`.
+- `GROQ_MAX_COMPLETION_TOKENS` default: `8192`.
+- Kolom `api_key_ref` di tabel `users` deprecated dan tidak dipakai untuk request provider.
+- Backend auth user menggunakan access token yang terpisah dari API key AI.
 
 ### Rate Limit Handling
 - `AIService` punya built-in retry dengan exponential backoff.
@@ -257,7 +262,8 @@ Rest day adalah hari di mana `weeks_data` di `workout_plans` tidak memiliki sess
 | MealLog | date, meal, foodName, calories, protein, carbs, fat, isManualInput | Object (JSON) | `isManualInput: true` jika user input manual (offline/tidak pakai AI) |
 | WeightLog | date, weightKg, notes | Object (JSON) | Log berat badan harian/mingguan. Terpisah dari `fitness_capabilities` |
 | DayLog | date, workoutDone, totalCalories, targetCalories, sleepHours, targetSleep, disciplineScore | Object (JSON) | Computed dari WorkoutSession + MealLog. Tidak disimpan terpisah — gunakan `day_scores` sebagai persistent store |
-| AIPromptConfig | systemPrompt, userPromptTemplate, temperature, maxTokens, provider, model | Object (JSON) | Per-method config, editable user |
+| AIPromptConfig | systemPrompt, userPromptTemplate, temperature, maxTokens, outputSchema | Object (JSON) | Per-method config, editable user/global default |
+| AIRequestLog | provider, modelName, methodName, inputTokens, outputTokens, status, requestedAt | Object (JSON) | Audit log backend untuk AI request dan token usage |
 
 ---
 
@@ -304,15 +310,16 @@ Database utama menggunakan **MySQL**. Schema di Bagian 13 ditulis dalam MySQL DD
 
 > **Catatan:** Dengan MySQL sebagai backend, fitur "privacy-first: semua data lokal" di Bagian 1 perlu direvisi. Data user kini tersimpan di server. Pastikan kebijakan privasi dan enkripsi data at-rest dikomunikasikan ke user.
 
-### Secure Storage (untuk API Key)
-- `expo-secure-store` (React Native/Expo) — wajib untuk menyimpan API key user.
-- Web: Web Crypto API + sessionStorage (key di-derive dari password, tidak persisten).
+### Secure Config (untuk AI Secret)
+- AI secret tidak disimpan di client. Tidak ada input API key user di onboarding/settings.
+- Server membaca `GROQ_API_KEY` dari `.env`; `.env` tidak boleh masuk version control.
+- Jika nanti mobile client butuh token lokal, gunakan secure storage platform untuk token session, bukan credential provider AI.
 
-### AI API (Free Tier Options)
-- Anthropic: `claude-haiku-4` paling murah, `claude-sonnet-4` untuk analisa kompleks.
-- Google Gemini: `gemini-1.5-flash` gratis dengan rate limit.
-- OpenAI: `gpt-4o-mini` relatif murah.
-- Groq: `llama3` gratis, sangat cepat, cocok untuk `estimateCalories`.
+### AI API Runtime
+- Provider aktif: Groq.
+- Model default: `openai/gpt-oss-120b`.
+- Default request setting: `temperature=1`, `max_completion_tokens=8192`, `top_p=1`, `reasoning_effort="medium"`.
+- Endpoint vision seperti `analyze-food-photo` membutuhkan model/provider vision-capable. Default Groq text model akan mengembalikan error unsupported image.
 
 ### Charting
 - Victory Native (React Native) atau Recharts (React web).
@@ -333,16 +340,16 @@ Database utama menggunakan **MySQL**. Schema di Bagian 13 ditulis dalam MySQL DD
 | S1.6 | Implement `WeightService` | `logWeight`, `getHistory`, `getLatest` |
 | S1.7 | Implement `ScoringService` | Logic scoring dari Bagian 5 termasuk logika rest day. Unit test dengan berbagai skenario |
 | S1.8 | Bundle local calorie database | Buat JSON asset ~500 makanan umum Indonesia untuk offline fallback |
-| S1.9 | Onboarding screens | Form 7 langkah (termasuk notif permission + API key setup), validasi, simpan ke `StorageService` |
+| S1.9 | Onboarding screens | Form 8 langkah (termasuk notif permission + info AI global Groq), validasi, simpan ke `StorageService` |
 
 ### Sprint 2 - AI Integration
 | Step | Action | Detail |
 | --- | --- | --- |
 | S2.1 | Implement `AIServiceInterface` | Buat abstract class/interface dengan semua method signature |
-| S2.2 | Implement `AnthropicAIService` | Wrap Anthropic API. Handle auth, rate limit, retry, parse JSON response |
+| S2.2 | Implement `GroqAIService` | Wrap Groq Chat Completions API dari backend. Baca `GROQ_API_KEY` dari `.env`, handle auth provider, rate limit, retry, parse JSON response |
 | S2.3 | Implement `MockAIService` | Return dummy data untuk development tanpa buang token API |
 | S2.4 | Implement `CalorieService` | Facade dengan online (AIService) + offline (local DB + manual) fallback strategy |
-| S2.5 | Prompt config system | Load prompt dari config file, support template placeholder |
+| S2.5 | Prompt config system | Load prompt dari `ai_prompt_configs` (user config -> global default), support template placeholder |
 | S2.6 | Confirmation flow UI | Komponen reusable: tampilkan proposal AI, tombol Setuju/Edit/Revisi |
 | S2.7 | AI Setup screen (Fase 2) | Onboarding AI: analisa profil -> propose program -> user confirm |
 
@@ -363,7 +370,7 @@ Database utama menggunakan **MySQL**. Schema di Bagian 13 ditulis dalam MySQL DD
 | S4.2 | Monthly review flow | On-open trigger check, AI analisa, propose level change, konfirmasi |
 | S4.3 | Progress & stats screen | Grafik berat badan (`weight_logs`), kalori, discipline score |
 | S4.4 | Program & menu editor | Tampilkan program aktif, edit manual, minta AI revisi |
-| S4.5 | Settings screen | API key (via secure keychain), pilih provider, test koneksi, export JSON, reset data |
+| S4.5 | Settings screen | Status provider global Groq, prompt config, export JSON, reset data |
 | S4.6 | Rate limit UX | Tampilkan status AI, estimasi waktu tunggu, queue antrian |
 
 ---
@@ -376,11 +383,11 @@ Database utama menggunakan **MySQL**. Schema di Bagian 13 ditulis dalam MySQL DD
 - Setiap method `AIService` harus return `{ status, data, error }`, jangan throw exception langsung ke UI.
 - Prompt template harus bisa diedit tanpa rebuild app, simpan di storage, bukan di kode.
 - AI tidak pernah auto-apply perubahan program, selalu lewat `ConfirmationFlow`.
-- API key **selalu** lewat `expo-secure-store`, tidak pernah AsyncStorage atau SQLite.
+- AI provider key **selalu** server-side di `.env` (`GROQ_API_KEY`), tidak pernah dikirim ke client atau disimpan per user.
 - `CalorieService` adalah satu-satunya pintu masuk estimasi kalori dari UI — tidak boleh panggil `AIService.estimateCalories` langsung dari screen.
 
 ### Edge cases yang harus dihandle
-- User tidak pasang API key: tampilkan mode terbatas, fitur non-AI tetap berjalan.
+- Server belum punya `GROQ_API_KEY`: AI features tampilkan error jelas/mode terbatas, fitur non-AI tetap berjalan.
 - User offline saat log makanan: `CalorieService` auto-fallback ke local DB, lalu ke manual input. Tampilkan indikator "estimasi offline".
 - AI return JSON malformed: parse dengan try/catch, tampilkan error jelas, retry otomatis.
 - Rate limit kena: queue request, estimasi waktu, notif ke user.
@@ -391,7 +398,7 @@ Database utama menggunakan **MySQL**. Schema di Bagian 13 ditulis dalam MySQL DD
 
 ### Yang boleh dikembangkan nanti (out of scope v1)
 - Sync ke cloud/multi-device.
-- Foto makanan -> estimasi kalori (butuh vision model).
+- Foto makanan production-grade -> estimasi kalori dengan model/provider vision-capable.
 - Integrasi wearable (Apple Watch, Fitbit).
 - Social features/sharing progress.
 
@@ -499,8 +506,8 @@ CREATE TABLE users (
   gender          ENUM('male','female','other') NOT NULL,
   birth_date      DATE         NOT NULL,
   height_cm       DECIMAL(4,1) NOT NULL,
-  ai_provider     VARCHAR(50)  NOT NULL DEFAULT 'anthropic',
-  api_key_ref     TEXT         NULL COMMENT 'Keychain reference string only — never the key value itself',
+  ai_provider     VARCHAR(50)  NOT NULL DEFAULT 'groq',
+  api_key_ref     TEXT         NULL COMMENT 'Deprecated; AI uses global GROQ_API_KEY from server env',
   created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   onboarding_done BOOLEAN      NOT NULL DEFAULT FALSE,
   PRIMARY KEY (user_id),
@@ -737,6 +744,31 @@ CREATE TABLE ai_prompt_configs (
   CONSTRAINT fk_apc_user
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABEL: ai_request_logs
+-- Audit log untuk request AI dan token usage.
+-- ============================================================
+CREATE TABLE ai_request_logs (
+  log_id           CHAR(36)     NOT NULL DEFAULT (UUID()),
+  user_id          CHAR(36)     NOT NULL,
+  provider         VARCHAR(50)  NOT NULL COMMENT 'groq/etc',
+  model_name       VARCHAR(100) NULL COMMENT 'e.g. openai/gpt-oss-120b',
+  method_name      VARCHAR(100) NOT NULL COMMENT 'Business method, e.g. generateMealPlan',
+  request_payload  JSON         NULL,
+  response_payload JSON         NULL,
+  input_tokens     INT UNSIGNED NOT NULL DEFAULT 0,
+  output_tokens    INT UNSIGNED NOT NULL DEFAULT 0,
+  total_tokens     INT UNSIGNED NOT NULL DEFAULT 0,
+  status           ENUM('success','error') NOT NULL DEFAULT 'success',
+  error_message    TEXT         NULL,
+  requested_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (log_id),
+  KEY idx_airl_user_requested (user_id, requested_at),
+  KEY idx_airl_provider_method (provider, method_name),
+  CONSTRAINT fk_airl_user
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
 ### Relasi Antar Tabel
@@ -750,6 +782,7 @@ CREATE TABLE ai_prompt_configs (
 - `users (1) -> (N) meal_logs`
 - `users (1) -> (N) day_scores` (UNIQUE per user per tanggal)
 - `users (1) -> (N) ai_prompt_configs` (`user_id` NULL = global default)
+- `users (1) -> (N) ai_request_logs` (audit request AI per user)
 
 ### Catatan Penting untuk Implementasi
 - `fitness_capabilities` append-only: tidak pernah UPDATE, selalu INSERT row baru.
@@ -758,10 +791,20 @@ CREATE TABLE ai_prompt_configs (
 - `day_scores`: recalculate (bukan append baru) jika user edit log di hari yang sama — manfaatkan `UNIQUE(user_id, score_date)` dengan `INSERT ... ON DUPLICATE KEY UPDATE`.
 - `user_preferences`: satu row per user — gunakan `INSERT ... ON DUPLICATE KEY UPDATE`, bukan plain INSERT.
 - `ai_prompt_configs`: load dengan `ORDER BY (user_id IS NULL) ASC` agar user config prioritas di atas global default.
+- `ai_request_logs`: tulis log untuk setiap AI request yang selesai diproses; simpan `provider`, `model_name`, `method_name`, token usage, status, dan error message jika gagal.
 
 ---
 
 ## 14. Changelog
+
+### v1.5 — Global Groq AI runtime & AI request logging
+| # | Issue | Perubahan |
+| --- | --- | --- |
+| G1 | Per-user API key tidak lagi diinginkan | Runtime AI dipindahkan ke global server-side `GROQ_API_KEY` dari `.env`; user tidak mengisi API key |
+| G2 | Provider/model perlu distandardisasi | Provider aktif ditetapkan `groq`, model default `openai/gpt-oss-120b`, dengan `temperature=1`, `max_completion_tokens=8192`, `top_p=1`, `reasoning_effort="medium"` |
+| G3 | Audit request AI belum ada | Ditambahkan tabel `ai_request_logs` untuk menyimpan provider, model, method, payload, status, dan token usage |
+| G4 | UI onboarding/settings masih meminta provider/key | Onboarding dan settings diubah menjadi info/status provider global, bukan input key/provider user |
+| G5 | Vision endpoint memakai model text default | `analyze-food-photo` harus memakai model/provider vision-capable; default Groq text model mengembalikan unsupported-image error |
 
 ### v1.4 — User authentication & per-user scope
 | # | Issue | Perubahan |
@@ -805,7 +848,7 @@ CREATE TABLE ai_prompt_configs (
 #### Security fix
 | # | Issue | Perubahan |
 | --- | --- | --- |
-| S1 | Enkripsi API key tidak aman | Bagian 8 ditambahkan seksi "Secure Storage". `api_key_enc` di tabel `users` diganti `api_key_ref` (referensi ke keychain). Bagian 10 ditambahkan rule wajib `expo-secure-store` |
+| S1 | Enkripsi API key tidak aman | Historical: v1.1 pernah mengganti `api_key_enc` menjadi `api_key_ref`. Superseded by v1.5: AI credential sekarang global server-side `GROQ_API_KEY`, bukan key per user |
 
 #### Minor fixes
 | # | Issue | Perubahan |
