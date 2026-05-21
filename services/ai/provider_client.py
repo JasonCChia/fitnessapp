@@ -136,34 +136,34 @@ class ProviderClient:
         raise RuntimeError(f"Unsupported provider: {provider}")
 
     def _groq_text(self, **kwargs) -> dict:
-        payload = {
-            "model": kwargs["model"],
-            "messages": [
+        try:
+            from groq import Groq
+        except ImportError as exc:
+            raise RuntimeError("Missing dependency: install the 'groq' package") from exc
+
+        client = Groq(api_key=kwargs["api_key"])
+        completion = client.chat.completions.create(
+            model=kwargs["model"],
+            messages=[
                 {"role": "system", "content": kwargs["system_prompt"]},
                 {"role": "user", "content": kwargs["user_prompt"]},
             ],
-            "temperature": kwargs["temperature"],
-            "max_completion_tokens": kwargs["max_tokens"],
-            "top_p": 1,
-            "reasoning_effort": "medium",
-            "stream": False,
-            "stop": None,
-        }
-        res = _http_post_json(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {kwargs['api_key']}",
-            },
-            payload=payload,
+            temperature=kwargs["temperature"],
+            max_completion_tokens=kwargs["max_tokens"],
+            top_p=1,
+            reasoning_effort="medium",
+            stream=True,
+            stop=None,
         )
-        text = (((res.get("choices") or [{}])[0].get("message") or {}).get("content") or "").strip()
-        usage = res.get("usage") or {}
+        chunks = []
+        for chunk in completion:
+            chunks.append(chunk.choices[0].delta.content or "")
+
         return {
-            "text": text,
-            "model": res.get("model") or kwargs["model"],
-            "input_tokens": int(usage.get("prompt_tokens") or 0),
-            "output_tokens": int(usage.get("completion_tokens") or 0),
+            "text": "".join(chunks).strip(),
+            "model": kwargs["model"],
+            "input_tokens": 0,
+            "output_tokens": 0,
         }
 
     def _openai_text(self, **kwargs) -> dict:
