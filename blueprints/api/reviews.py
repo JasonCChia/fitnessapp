@@ -1,10 +1,17 @@
-from flask import Blueprint
+from flask import Blueprint, request
 
 from core.responses.api_response import error, success
+from core.security import ensure_user_scope
 from core.utils.serialization import row_to_json_safe
 from services.review import review_service
 
 reviews_bp = Blueprint("reviews_api", __name__, url_prefix="/api/users/<string:user_id>/reviews")
+
+
+@reviews_bp.before_request
+def authorize_review_routes():
+    route_user_id = request.view_args.get("user_id") if request.view_args else None
+    return ensure_user_scope(route_user_id)
 
 
 @reviews_bp.get("/weekly")

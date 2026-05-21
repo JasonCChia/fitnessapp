@@ -20,3 +20,11 @@ def row_to_json_safe(row: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def rows_to_json_safe(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [row_to_json_safe(row) for row in rows]
+
+
+def sanitize_user_row(row: dict[str, Any] | None) -> dict[str, Any] | None:
+    user_row = row_to_json_safe(row)
+    if user_row is None:
+        return None
+    user_row.pop("password_hash", None)
+    return user_row

@@ -4,6 +4,7 @@ from flask import Blueprint, request
 
 from core.exceptions.app_exceptions import ValidationError
 from core.responses.api_response import error, success
+from core.security import ensure_user_scope
 from core.utils.serialization import row_to_json_safe, rows_to_json_safe
 from schemas.request.json_body import get_json_body
 from schemas.validators.payload_validator import (
@@ -13,6 +14,12 @@ from schemas.validators.payload_validator import (
 from services.tracking import tracking_service
 
 tracking_bp = Blueprint("tracking_api", __name__, url_prefix="/api/users/<string:user_id>")
+
+
+@tracking_bp.before_request
+def authorize_tracking_routes():
+    route_user_id = request.view_args.get("user_id") if request.view_args else None
+    return ensure_user_scope(route_user_id)
 
 
 @tracking_bp.post("/weight-logs")

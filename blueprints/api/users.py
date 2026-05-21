@@ -1,26 +1,46 @@
-from flask import Blueprint, request
+from flask import Blueprint, g, request
 
 from core.exceptions.app_exceptions import ValidationError
 from core.responses.api_response import error, success
-from core.utils.serialization import row_to_json_safe, rows_to_json_safe
+from core.security import ensure_user_scope
+from core.utils.serialization import row_to_json_safe, rows_to_json_safe, sanitize_user_row
 from schemas.request.json_body import get_json_body
 from schemas.validators.payload_validator import (
     validate_payload_columns,
     validate_required_insert_fields,
 )
+from services.auth import auth_service
 from services.user import user_service
 
 users_bp = Blueprint("users_api", __name__, url_prefix="/api/users")
+
+
+def _extract_and_hash_password(payload: dict):
+    password = payload.pop("password", None)
+    if not isinstance(password, str) or len(password.strip()) < 8:
+        raise ValidationError("Field 'password' is required and must be at least 8 characters")
+    return auth_service.hash_password(password)
+
+
+@users_bp.before_request
+def authorize_users_routes():
+    if request.endpoint in {"users_api.create_user", "users_api.onboarding"}:
+        return None
+
+    route_user_id = request.view_args.get("user_id") if request.view_args else None
+    return ensure_user_scope(route_user_id)
 
 
 @users_bp.post("")
 def create_user():
     try:
         payload = get_json_body()
-        validate_payload_columns(payload, "users", excluded={"user_id", "created_at"})
-        validate_required_insert_fields(payload, "users", excluded={"user_id", "created_at"})
+        password_hash = _extract_and_hash_password(payload)
+        validate_payload_columns(payload, "users", excluded={"user_id", "created_at", "password_hash"})
+        validate_required_insert_fields(payload, "users", excluded={"user_id", "created_at", "password_hash"})
+        payload["password_hash"] = password_hash
         row = user_service.create_user(payload)
-        return success(row_to_json_safe(row), "User created", 201)
+        return success(sanitize_user_row(row), "User created", 201)
     except ValidationError as exc:
         return error(exc.message, 400, exc.detail)
     except Exception as exc:
@@ -30,8 +50,10 @@ def create_user():
 @users_bp.get("")
 def list_users():
     try:
-        rows = user_service.list_users()
-        return success(rows_to_json_safe(rows))
+        row = user_service.get_user(g.current_user_id)
+        if not row:
+            return error("User not found", 404)
+        return success([sanitize_user_row(row)])
     except Exception as exc:
         return error("Failed to list users", 500, str(exc))
 
@@ -42,7 +64,7 @@ def get_user(user_id: str):
         row = user_service.get_user(user_id)
         if not row:
             return error("User not found", 404)
-        return success(row_to_json_safe(row))
+        return success(sanitize_user_row(row))
     except Exception as exc:
         return error("Failed to fetch user", 500, str(exc))
 
@@ -51,13 +73,18 @@ def get_user(user_id: str):
 def update_user(user_id: str):
     try:
         payload = get_json_body()
-        validate_payload_columns(payload, "users", excluded={"user_id", "created_at"})
+        new_password_hash = None
+        if "password" in payload:
+            new_password_hash = _extract_and_hash_password(payload)
+        validate_payload_columns(payload, "users", excluded={"user_id", "created_at", "password_hash"})
+        if new_password_hash:
+            payload["password_hash"] = new_password_hash
         if not payload:
             return error("No fields provided for update", 400)
         row = user_service.update_user(user_id, payload)
         if not row:
             return error("User not found", 404)
-        return success(row_to_json_safe(row), "User updated")
+        return success(sanitize_user_row(row), "User updated")
     except ValidationError as exc:
         return error(exc.message, 400, exc.detail)
     except Exception as exc:
@@ -154,12 +181,18 @@ def onboarding():
         if fitness_snapshot is not None and not isinstance(fitness_snapshot, dict):
             return error("Field 'fitness_capability' must be an object", 400)
 
-        validate_payload_columns(user_payload, "users", excluded={"user_id", "created_at", "onboarding_done"})
+        password_hash = _extract_and_hash_password(user_payload)
+        validate_payload_columns(
+            user_payload,
+            "users",
+            excluded={"user_id", "created_at", "onboarding_done", "password_hash"},
+        )
         validate_required_insert_fields(
             user_payload,
             "users",
-            excluded={"user_id", "created_at", "onboarding_done"},
+            excluded={"user_id", "created_at", "onboarding_done", "password_hash"},
         )
+        user_payload["password_hash"] = password_hash
         validate_payload_columns(
             preferences_payload,
             "user_preferences",
@@ -208,7 +241,7 @@ def onboarding():
         preferences = user_service.get_user_preferences(user_id)
         preference_rows = user_service.list_food_preferences(user_id, include_deleted=False)
         response_data = {
-            "user": row_to_json_safe(user),
+            "user": sanitize_user_row(user),
             "preferences": row_to_json_safe(preferences),
             "food_preferences": rows_to_json_safe(preference_rows),
         }

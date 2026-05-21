@@ -8,6 +8,7 @@ USER_TABLE = TableDefinition(
         ColumnDefinition("user_id", "CHAR(36)", default="UUID()"),
         ColumnDefinition("name", "VARCHAR(100)"),
         ColumnDefinition("email", "VARCHAR(255)", nullable=True),
+        ColumnDefinition("password_hash", "VARCHAR(255)"),
         ColumnDefinition("gender", "ENUM('male','female','other')"),
         ColumnDefinition("birth_date", "DATE"),
         ColumnDefinition("height_cm", "DECIMAL(4,1)"),

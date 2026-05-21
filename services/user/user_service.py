@@ -13,6 +13,14 @@ def get_user(user_id: str):
     return user_repository.get_user(user_id)
 
 
+def get_user_by_email(email: str):
+    return user_repository.get_user_by_email(email)
+
+
+def get_user_auth_by_email(email: str):
+    return user_repository.get_user_auth_by_email(email)
+
+
 def update_user(user_id: str, payload: dict):
     return user_repository.update_user(user_id, payload)
 

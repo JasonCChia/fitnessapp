@@ -1,5 +1,10 @@
 # API Modules
 
+## Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
 ## System
 - `GET /api/system/health/db`
 - `POST /api/system/init-db`
@@ -45,3 +50,8 @@
 - `POST /api/users/<user_id>/reviews/monthly/mark-done`
 - `GET /api/users/<user_id>/ai-prompts`
 - `PUT /api/users/<user_id>/ai-prompts/<method_name>`
+
+## Auth Rules
+- All `/api/users/<user_id>/...` endpoints require `Authorization: Bearer <token>`.
+- `user_id` in path must match token owner; cross-user access is blocked (`403`).
+- `GET /api/users` now returns only current authenticated user data.

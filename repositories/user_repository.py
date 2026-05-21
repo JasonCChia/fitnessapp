@@ -26,6 +26,22 @@ def get_user(user_id: str):
     return fetch_one("SELECT * FROM users WHERE user_id=%s", (user_id,))
 
 
+def get_user_by_email(email: str):
+    return fetch_one("SELECT * FROM users WHERE email=%s LIMIT 1", (email,))
+
+
+def get_user_auth_by_email(email: str):
+    return fetch_one(
+        """
+        SELECT user_id, email, password_hash
+        FROM users
+        WHERE email=%s
+        LIMIT 1
+        """,
+        (email,),
+    )
+
+
 def update_user(user_id: str, payload: dict):
     assignments = ", ".join(f"{key}=%s" for key in payload.keys())
     params = tuple(payload.values()) + (user_id,)

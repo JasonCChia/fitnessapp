@@ -16,6 +16,11 @@
 - Models: schema metadata and table contracts.
 - Core: reusable cross-cutting infrastructure.
 
+## Authentication Boundary
+- Auth token issuing and password hashing live in `services/auth/*`.
+- Route guarding lives in `core/security/auth_guard.py`.
+- Blueprints under `/api/users/<user_id>/...` enforce token + user scope before handler logic.
+
 ## Scaling Notes
 - Keep domains separated by folder.
 - Add a feature by creating:

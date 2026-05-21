@@ -3,6 +3,7 @@ import os
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+    ACCESS_TOKEN_EXPIRES_SECONDS = int(os.getenv("ACCESS_TOKEN_EXPIRES_SECONDS", "86400"))
     DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
     MYSQL_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")

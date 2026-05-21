@@ -21,6 +21,8 @@ Environment variable opsional:
 - `MYSQL_USER` (default: `root`)
 - `MYSQL_PASSWORD` (default: empty)
 - `MYSQL_DB` (default: `healthapp`)
+- `SECRET_KEY` (default: `dev-secret-key-change-me`)
+- `ACCESS_TOKEN_EXPIRES_SECONDS` (default: `86400`)
 - `APP_HOST` (default: `0.0.0.0`)
 - `APP_PORT` (default: `5000`)
 - `DEBUG` (default: `true`)
@@ -39,7 +41,18 @@ curl -X POST http://localhost:5000/api/system/init-db
 
 Schema source: `db/schema.sql`.
 
+Jika database sudah pernah dibuat sebelum update auth, jalankan migration:
+
+```sql
+source db/migrations/20260521_add_password_hash_to_users.sql;
+```
+
 ## 4. Core API Endpoints
+
+Auth:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 
 System:
 - `GET /api/system/health/db`
@@ -89,6 +102,9 @@ AI Prompt Config:
 
 ## 5. Notes
 
+- Endpoint `/api/users/<user_id>/...` wajib pakai `Authorization: Bearer <token>`.
+- `user_id` pada path harus sama dengan pemilik token, jika tidak akan ditolak (`403`).
+- `GET /api/users` mengembalikan data user login saat ini, bukan list semua user.
 - `fitness_capabilities` diimplementasi append-only (insert snapshot baru, tidak update row lama).
 - `food_preferences` pakai soft delete lewat `deleted_at`.
 - `day_scores` pakai upsert (`UNIQUE(user_id, score_date)`).

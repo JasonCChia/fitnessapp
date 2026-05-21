@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
   user_id CHAR(36) NOT NULL DEFAULT (UUID()),
   name VARCHAR(100) NOT NULL,
   email VARCHAR(255) NULL,
+  password_hash VARCHAR(255) NOT NULL COMMENT 'Store hash only (werkzeug generate_password_hash)',
   gender ENUM('male','female','other') NOT NULL,
   birth_date DATE NOT NULL,
   height_cm DECIMAL(4,1) NOT NULL,
