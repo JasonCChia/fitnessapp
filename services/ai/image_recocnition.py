@@ -1,17 +1,68 @@
+import json
 from pathlib import Path
+
+from services.ai.provider_client import ProviderClient
 
 
 class ImageRecognitionService:
-    def detect(self, image_path: str) -> dict:
+    def __init__(self):
+        self.client = ProviderClient()
+
+    @staticmethod
+    def _parse_json_text(text: str) -> dict:
+        raw = (text or "").strip()
+        if raw.startswith("```"):
+            raw = raw.strip("`")
+            if raw.startswith("json"):
+                raw = raw[4:].strip()
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            start = raw.find("{")
+            end = raw.rfind("}")
+            if start == -1 or end == -1 or end <= start:
+                raise ValueError("AI response is not valid JSON")
+            return json.loads(raw[start : end + 1])
+
+    def detect(
+        self,
+        *,
+        provider: str,
+        api_key: str,
+        model: str,
+        image_path: str,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float = 0.1,
+        max_tokens: int = 700,
+    ) -> dict:
         suffix = Path(image_path).suffix.lower()
         if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+            return {"status": "error", "data": None, "error": "Unsupported image format"}
+        if not api_key:
+            return {"status": "error", "data": None, "error": "Missing API key"}
+
+        try:
+            result = self.client.analyze_image(
+                provider=provider,
+                api_key=api_key,
+                model=model,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                image_path=image_path,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            parsed = self._parse_json_text(result["text"])
             return {
-                "status": "error",
-                "data": None,
-                "error": "Unsupported image format",
+                "status": "ok",
+                "data": parsed,
+                "error": None,
+                "usage": {
+                    "input_tokens": int(result.get("input_tokens") or 0),
+                    "output_tokens": int(result.get("output_tokens") or 0),
+                },
+                "model": result.get("model"),
             }
-        return {
-            "status": "ok",
-            "data": {"label": "food", "confidence": 0.75},
-            "error": None,
-        }
+        except Exception as exc:
+            return {"status": "error", "data": None, "error": str(exc)}

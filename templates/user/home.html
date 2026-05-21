@@ -5,65 +5,54 @@
 
 {% block content %}
 <section class="hero-card p-4 p-md-5 mb-4">
-  <h1 class="h3 mb-2">Halo, siap lanjut hari ini?</h1>
-  <p class="mb-3">Cukup fokus ke 4 hal: workout, makan, tidur, konsisten.</p>
+  <h1 class="h3 mb-2">Rencana hari ini sudah siap</h1>
+  <p class="mb-3">Checklist workout, catat makan, lalu lihat ringkasan poin harianmu.</p>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-light btn-sm" href="/user/nutrition">+ Log Makan</a>
-    <a class="btn btn-outline-light btn-sm" href="/user/workout">+ Log Workout</a>
-    <a class="btn btn-outline-light btn-sm" href="/user/weekly-review">Lihat Review</a>
+    <a class="btn btn-light btn-sm" href="/user/ai-setup">Lihat / Revisi Plan AI</a>
+    <a class="btn btn-outline-light btn-sm" href="/user/workout">Checklist Workout</a>
+    <a class="btn btn-outline-light btn-sm" href="/user/nutrition">Log Makanan / Foto</a>
+    <a class="btn btn-outline-light btn-sm" href="/user/progress">Lihat Progress</a>
   </div>
 </section>
 
 <div class="row g-3 mb-3">
-  <div class="col-12 col-lg-5">
-    <div class="card shadow-sm h-100 app-card">
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6 mb-3">Profile Aktif</h2>
-        <div class="input-group mb-2">
-          <input id="ctx-user-id" class="form-control form-control-sm" placeholder="user_id..." />
-          <button class="btn btn-primary btn-sm" type="button" id="btn-save-user-id">Save</button>
-        </div>
-        <p id="ctx-user-info" class="small text-muted mt-2 mb-0"></p>
-        <hr />
-        <div class="d-flex align-items-center gap-3">
-          <div class="score-ring">
-            <div class="score-ring-inner">78</div>
-          </div>
-          <div>
-            <div class="fw-semibold">Discipline Score</div>
-            <div class="small text-muted">Bagus. Tinggal 12 poin ke target hari ini.</div>
-          </div>
-        </div>
+        <h2 class="h6 mb-3">Target Harian</h2>
+        <div class="task-item mb-2">Kalori: <strong id="dash-target-calories">-</strong> kcal</div>
+        <div class="task-item mb-2">Tidur: <strong id="dash-target-sleep">-</strong> jam</div>
+        <div class="task-item">Goal: <strong id="dash-goal-type">-</strong></div>
       </div>
     </div>
   </div>
-  <div class="col-12 col-lg-7">
-    <div class="card shadow-sm h-100 app-card">
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6 mb-3">Fokus Hari Ini</h2>
-        <div class="row g-2">
-          <div class="col-12 col-md-6"><div class="task-item">☐ Workout Upper Body</div></div>
-          <div class="col-12 col-md-6"><div class="task-item">☑ Sarapan tercatat</div></div>
-          <div class="col-12 col-md-6"><div class="task-item">☐ Makan siang</div></div>
-          <div class="col-12 col-md-6"><div class="task-item">☐ Tidur 8 jam</div></div>
-        </div>
-        <div class="mt-3 d-flex flex-wrap gap-2">
-          <a class="quick-chip" href="/user/nutrition">🍱 Nutrition</a>
-          <a class="quick-chip" href="/user/workout">💪 Workout</a>
-          <a class="quick-chip" href="/user/progress">📈 Progress</a>
-          <a class="quick-chip" href="/setting/">⚙️ Settings</a>
-        </div>
+        <h2 class="h6 mb-3">Ringkasan Hari Ini</h2>
+        <div class="task-item mb-2">Poin hari ini: <strong id="dash-today-score">-</strong></div>
+        <div class="task-item mb-2">Workout done: <strong id="dash-workout-done">-</strong></div>
+        <div class="task-item">Kalori aktual: <strong id="dash-calories-actual">-</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card app-card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6 mb-3">Level & Profil</h2>
+        <div class="task-item mb-2">Nama: <strong id="dash-user-name">-</strong></div>
+        <div class="task-item mb-2">Level fitness: <strong id="dash-fitness-level">-</strong></div>
+        <div class="task-item">Berat terakhir: <strong id="dash-latest-weight">-</strong> kg</div>
       </div>
     </div>
   </div>
 </div>
 
 <div class="row g-3">
-  <div class="col-12 col-md-6"><a class="app-link-card" href="/user/ai-setup">AI sedang menunggu konfirmasi programmu</a></div>
-  <div class="col-12 col-md-6"><a class="app-link-card" href="/user/weekly-review">Minggu ini: lihat review dan saran AI</a></div>
+  <div class="col-12 col-md-6"><a class="app-link-card" href="/user/workout">Centang workout hari ini</a></div>
+  <div class="col-12 col-md-6"><a class="app-link-card" href="/user/nutrition">Isi makan manual atau lewat foto</a></div>
   <div class="col-12">
-    <button class="btn btn-outline-secondary btn-sm" id="btn-db-health" type="button">Cek Koneksi Sistem</button>
-    <pre id="db-health-output" class="output-box mt-2 mb-0"></pre>
+    <pre id="dashboard-output" class="output-box mt-2 mb-0"></pre>
   </div>
 </div>
 {% endblock %}

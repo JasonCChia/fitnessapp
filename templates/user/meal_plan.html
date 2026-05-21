@@ -10,7 +10,6 @@
 <div class="card app-card shadow-sm mb-3">
   <div class="card-body">
     <form id="meal-plan-form" class="row g-2">
-      <div class="col-md-3"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
       <div class="col-md-3"><input class="form-control" name="target_calories" type="number" placeholder="Target calories" required /></div>
       <div class="col-md-2"><input class="form-control" name="target_protein_g" type="number" placeholder="Protein" required /></div>
       <div class="col-md-2"><input class="form-control" name="target_carbs_g" type="number" placeholder="Carbs" required /></div>
@@ -30,13 +29,11 @@
 <div class="card app-card shadow-sm">
   <div class="card-body">
     <form id="meal-plan-list-form" class="row g-2 mb-3">
-      <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
       <div class="col-md-4"><input class="form-control" name="status" placeholder="status filter (optional)" /></div>
-      <div class="col-md-4"><button class="btn btn-outline-primary w-100" type="submit">Load Plans</button></div>
+      <div class="col-md-8"><button class="btn btn-outline-primary w-100" type="submit">Load Plans</button></div>
     </form>
     <div class="row g-2 mb-3">
-      <div class="col-md-4"><input id="activate-meal-user-id" class="form-control" placeholder="User ID" /></div>
-      <div class="col-md-4"><input id="activate-meal-plan-id" class="form-control" placeholder="Plan ID to activate" /></div>
+      <div class="col-md-8"><input id="activate-meal-plan-id" class="form-control" placeholder="Plan ID to activate" /></div>
       <div class="col-md-4"><button id="btn-activate-meal-plan" class="btn btn-outline-success w-100" type="button">Activate Plan</button></div>
     </div>
     <pre id="meal-plan-output" class="output-box mb-0"></pre>

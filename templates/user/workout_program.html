@@ -10,7 +10,6 @@
 <div class="card app-card shadow-sm mb-3">
   <div class="card-body">
     <form id="workout-plan-form" class="row g-2">
-      <div class="col-md-3"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
       <div class="col-md-3"><input class="form-control" name="fitness_level_at" type="number" min="1" max="5" value="1" required /></div>
       <div class="col-md-3">
         <select class="form-select" name="goal_type" required>
@@ -35,13 +34,11 @@
 <div class="card app-card shadow-sm">
   <div class="card-body">
     <form id="workout-plan-list-form" class="row g-2 mb-3">
-      <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
       <div class="col-md-4"><input class="form-control" name="status" placeholder="status filter (optional)" /></div>
-      <div class="col-md-4"><button class="btn btn-outline-primary w-100" type="submit">Load Plans</button></div>
+      <div class="col-md-8"><button class="btn btn-outline-primary w-100" type="submit">Load Plans</button></div>
     </form>
     <div class="row g-2 mb-3">
-      <div class="col-md-4"><input id="activate-workout-user-id" class="form-control" placeholder="User ID" /></div>
-      <div class="col-md-4"><input id="activate-workout-plan-id" class="form-control" placeholder="Plan ID to activate" /></div>
+      <div class="col-md-8"><input id="activate-workout-plan-id" class="form-control" placeholder="Plan ID to activate" /></div>
       <div class="col-md-4"><button id="btn-activate-workout-plan" class="btn btn-outline-success w-100" type="button">Activate Plan</button></div>
     </div>
     <pre id="workout-plan-output" class="output-box mb-0"></pre>

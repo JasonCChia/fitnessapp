@@ -135,6 +135,11 @@ def user_home():
 
 @user_bp.get("/onboarding")
 def onboarding_page():
+    user_id = session.get("user_id")
+    if user_id:
+        user = user_service.get_user(user_id)
+        if user and user.get("onboarding_done"):
+            return redirect(url_for("user.home_page"))
     return render_template("user/onboarding.html")
 
 

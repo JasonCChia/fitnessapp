@@ -23,6 +23,10 @@ Environment variable opsional:
 - `MYSQL_DB` (default: `healthapp`)
 - `SECRET_KEY` (default: `dev-secret-key-change-me`)
 - `ACCESS_TOKEN_EXPIRES_SECONDS` (default: `86400`)
+- `GROQ_API_KEY` (wajib untuk AI runtime)
+- `GROQ_MODEL` (default: `openai/gpt-oss-120b`)
+- `GROQ_TEMPERATURE` (default: `1`)
+- `GROQ_MAX_COMPLETION_TOKENS` (default: `8192`)
 - `APP_HOST` (default: `0.0.0.0`)
 - `APP_PORT` (default: `5000`)
 - `DEBUG` (default: `true`)
@@ -104,11 +108,17 @@ AI Request Logs:
 - `POST /api/users/<user_id>/ai-request-logs`
 - `GET /api/users/<user_id>/ai-request-logs`
 
+AI Runtime:
+- `POST /api/ai/revise-proposal` (real provider call)
+- `POST /api/ai/analyze-food-photo` (requires a vision-capable model/provider; default Groq text model returns unsupported)
+
 ## 5. Notes
 
 - Endpoint `/api/users/<user_id>/...` wajib pakai `Authorization: Bearer <token>`.
 - `user_id` pada path harus sama dengan pemilik token, jika tidak akan ditolak (`403`).
 - `GET /api/users` mengembalikan data user login saat ini, bukan list semua user.
+- AI runtime memakai provider global Groq dari `.env`; `users.ai_provider` dan `users.api_key_ref` tidak dipakai untuk request provider.
+- Set `GROQ_API_KEY` di `.env`, dengan model default `openai/gpt-oss-120b`.
 - `fitness_capabilities` diimplementasi append-only (insert snapshot baru, tidak update row lama).
 - `food_preferences` pakai soft delete lewat `deleted_at`.
 - `day_scores` pakai upsert (`UNIQUE(user_id, score_date)`).

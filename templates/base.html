@@ -21,8 +21,10 @@
       </button>
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="/user/onboarding">Onboarding</a></li>
           {% if session.get('user_id') %}
+          {% if current_user and not current_user.get('onboarding_done') %}
+          <li class="nav-item"><a class="nav-link" href="/user/onboarding">Onboarding</a></li>
+          {% endif %}
           <li class="nav-item"><a class="nav-link" href="/user/ai-setup">AI Plan</a></li>
           <li class="nav-item"><a class="nav-link" href="/user/home">Main App</a></li>
           <li class="nav-item">
@@ -31,6 +33,7 @@
             </form>
           </li>
           {% else %}
+          <li class="nav-item"><a class="nav-link" href="/user/register">Register</a></li>
           <li class="nav-item"><a class="nav-link" href="/user/login">Login</a></li>
           {% endif %}
         </ul>
@@ -44,14 +47,17 @@
 
   <nav class="bottom-nav d-md-none">
     {% if session.get('user_id') %}
+    {% if current_user and not current_user.get('onboarding_done') %}
+    <a href="/user/onboarding">Onboarding</a>
+    {% endif %}
     <a href="/user/home">Home</a>
     <a href="/user/nutrition">Nutrition</a>
     <a href="/user/workout">Workout</a>
     <a href="/user/progress">Progress</a>
     <a href="/setting/">Settings</a>
     {% else %}
+    <a href="/user/register">Register</a>
     <a href="/user/login">Login</a>
-    <a href="/user/onboarding">Onboarding</a>
     {% endif %}
   </nav>
 

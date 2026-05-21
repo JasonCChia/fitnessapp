@@ -39,6 +39,17 @@ def create_app():
     app.register_blueprint(ai_bp)
     app.register_blueprint(health_bp)
 
+    @app.context_processor
+    def inject_current_user():
+        user_id = session.get("user_id")
+        if not user_id:
+            return {"current_user": None}
+        user = user_service.get_user(user_id)
+        if not user:
+            session.pop("user_id", None)
+            return {"current_user": None}
+        return {"current_user": user}
+
     @app.get("/")
     def index():
         user_id = session.get("user_id")

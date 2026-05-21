@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Nutrition | FitDiscipline{% endblock %}
+{% block title %}Log Makanan | FitDiscipline{% endblock %}
 {% block page_id %}log_meals{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-1">Nutrition</h1>
-<p class="text-muted mb-3">Catat makan harian dengan cepat, cukup 2 langkah.</p>
+<h1 class="h4 mb-1">Log Makanan</h1>
+<p class="text-muted mb-3">Pilih input manual atau foto makanan untuk estimasi kalori AI.</p>
 
 <div class="row g-3">
   <div class="col-12 col-lg-7">
-    <div class="card app-card shadow-sm">
+    <div class="card app-card shadow-sm mb-3">
       <div class="card-body">
+        <h2 class="h6">Input Manual</h2>
         <form id="meal-log-form" class="row g-2">
-          <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
-          <div class="col-md-8"><input class="form-control" name="food_name" placeholder="Cari makanan... (contoh: nasi goreng)" required /></div>
+          <div class="col-md-8"><input class="form-control" name="food_name" placeholder="Contoh: nasi goreng" required /></div>
           <div class="col-md-4"><input class="form-control" type="date" name="log_date" required /></div>
           <div class="col-md-4">
             <select class="form-select" name="meal_type">
@@ -23,20 +23,23 @@
               <option value="snack">Snack</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <select class="form-select" name="portion_size">
-              <option value="small">Porsi kecil</option>
-              <option value="normal" selected>Porsi normal</option>
-              <option value="large">Porsi besar</option>
-            </select>
-          </div>
-          <div class="col-md-3"><input class="form-control" type="number" name="calories" placeholder="Kkal" required /></div>
-          <div class="col-md-3"><input class="form-control" type="number" step="0.1" name="protein_g" placeholder="Protein" value="0" /></div>
-          <div class="col-md-3"><input class="form-control" type="number" step="0.1" name="carbs_g" placeholder="Karbo" value="0" /></div>
-          <div class="col-md-3"><input class="form-control" type="number" step="0.1" name="fat_g" placeholder="Lemak" value="0" /></div>
-          <div class="col-12"><button class="btn btn-primary" type="submit">Tambah Makanan</button></div>
+          <div class="col-md-4"><input class="form-control" type="number" name="calories" placeholder="Kalori" required /></div>
+          <div class="col-md-4"><input class="form-control" type="number" step="0.1" name="protein_g" placeholder="Protein (g)" value="0" /></div>
+          <div class="col-md-4"><input class="form-control" type="number" step="0.1" name="carbs_g" placeholder="Karbo (g)" value="0" /></div>
+          <div class="col-md-4"><input class="form-control" type="number" step="0.1" name="fat_g" placeholder="Lemak (g)" value="0" /></div>
+          <div class="col-12"><button class="btn btn-primary" type="submit">Simpan Makanan</button></div>
         </form>
-        <div class="small text-success mt-2" id="meal-success-tip"></div>
+      </div>
+    </div>
+
+    <div class="card app-card shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">Analisis Foto Makanan</h2>
+        <form id="food-photo-form" class="row g-2">
+          <div class="col-md-8"><input class="form-control" type="file" name="food_image" accept="image/*" required /></div>
+          <div class="col-md-4"><button class="btn btn-outline-primary w-100" type="submit">Analisa Foto</button></div>
+        </form>
+        <p class="small text-muted mt-2 mb-0">Hasil analisa akan mengisi estimasi kalori agar cepat dicatat.</p>
       </div>
     </div>
   </div>
@@ -44,23 +47,11 @@
   <div class="col-12 col-lg-5">
     <div class="card app-card shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6">Ringkasan Hari Ini</h2>
-        <div class="task-item mb-2">Breakfast <strong>✓</strong></div>
-        <div class="task-item mb-2">Lunch <strong>✗</strong></div>
-        <div class="task-item mb-2">Dinner <strong>✗</strong></div>
-        <div class="task-item">Protein 92 / 145g</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12">
-    <div class="card app-card shadow-sm">
-      <div class="card-body">
+        <h2 class="h6">Output</h2>
         <form id="meal-log-list-form" class="row g-2 mb-3">
-          <div class="col-md-4"><input class="form-control" name="user_id" placeholder="User ID" required /></div>
-          <div class="col-md-4"><input class="form-control" type="date" name="from_date" /></div>
-          <div class="col-md-4"><input class="form-control" type="date" name="to_date" /></div>
-          <div class="col-12"><button class="btn btn-outline-primary" type="submit">Muat Riwayat Makanan</button></div>
+          <div class="col-md-6"><input class="form-control" type="date" name="from_date" /></div>
+          <div class="col-md-6"><input class="form-control" type="date" name="to_date" /></div>
+          <div class="col-12"><button class="btn btn-outline-secondary w-100" type="submit">Muat Riwayat</button></div>
         </form>
         <pre id="meal-output" class="output-box mb-0"></pre>
       </div>

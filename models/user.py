@@ -12,7 +12,7 @@ USER_TABLE = TableDefinition(
         ColumnDefinition("gender", "ENUM('male','female','other')"),
         ColumnDefinition("birth_date", "DATE"),
         ColumnDefinition("height_cm", "DECIMAL(4,1)"),
-        ColumnDefinition("ai_provider", "VARCHAR(50)", default="'anthropic'"),
+        ColumnDefinition("ai_provider", "VARCHAR(50)", default="'groq'"),
         ColumnDefinition("api_key_ref", "TEXT", nullable=True),
         ColumnDefinition("created_at", "TIMESTAMP", default="CURRENT_TIMESTAMP"),
         ColumnDefinition("onboarding_done", "BOOLEAN", default="FALSE"),

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS ai_request_logs (
   log_id CHAR(36) NOT NULL DEFAULT (UUID()),
   user_id CHAR(36) NOT NULL,
-  provider VARCHAR(50) NOT NULL COMMENT 'anthropic/openai/gemini/etc',
+  provider VARCHAR(50) NOT NULL COMMENT 'groq/etc',
   model_name VARCHAR(100) NULL COMMENT 'e.g. claude-3-5-sonnet, gpt-4o-mini',
   method_name VARCHAR(100) NOT NULL COMMENT 'Business method, e.g. generateMealPlan',
   request_payload JSON NULL,
