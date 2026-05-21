@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, session
 
 from core.exceptions.app_exceptions import ValidationError
 from core.responses.api_response import error, success
@@ -49,6 +49,7 @@ def register():
         payload["password_hash"] = auth_service.hash_password(password)
         row = user_service.create_user(payload)
         token = auth_service.issue_access_token(row["user_id"])
+        session["user_id"] = row["user_id"]
         return success(
             {"access_token": token, "token_type": "Bearer", "user": sanitize_user_row(row)},
             "Register success",
@@ -78,6 +79,7 @@ def login():
 
         user = user_service.get_user(auth_user["user_id"])
         token = auth_service.issue_access_token(auth_user["user_id"])
+        session["user_id"] = auth_user["user_id"]
         return success(
             {"access_token": token, "token_type": "Bearer", "user": sanitize_user_row(user)},
             "Login success",
@@ -98,6 +100,12 @@ def me():
     if not user:
         return error("User not found", 404)
     return success({"user": sanitize_user_row(user)})
+
+
+@auth_bp.post("/logout")
+def logout():
+    session.pop("user_id", None)
+    return success(message="Logout success")
 
 
 @auth_bp.get("/ping")

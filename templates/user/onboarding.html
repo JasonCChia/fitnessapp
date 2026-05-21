@@ -31,19 +31,16 @@
       <section class="coach-panel" data-step="2">
         <h3 class="h6 mb-3">Data dasar tubuh</h3>
         <div class="row g-2">
-          <div class="col-md-6"><input class="form-control" name="name" placeholder="Nama" required /></div>
-          <div class="col-md-6"><input class="form-control" name="email" placeholder="Email (opsional)" /></div>
-          <div class="col-md-4"><input class="form-control" name="age" type="number" min="10" placeholder="Umur" /></div>
-          <div class="col-md-4">
-            <select class="form-select" name="gender" required>
-              <option value="">Jenis kelamin</option>
-              <option value="male">Pria</option>
-              <option value="female">Wanita</option>
-              <option value="other">Lainnya</option>
-            </select>
+          <div class="col-12">
+            <div class="p-3 border rounded bg-light">
+              <div class="small text-muted">Profil akun (dari register)</div>
+              <div class="fw-semibold" id="onboarding-profile-name">-</div>
+              <div class="small" id="onboarding-profile-email">-</div>
+              <div class="small mb-2" id="onboarding-profile-age">Umur: -</div>
+              <div class="small mb-1" id="onboarding-profile-gender">Gender: -</div>
+              <div class="small mb-0" id="onboarding-profile-height">Tinggi: - cm</div>
+            </div>
           </div>
-          <div class="col-md-4"><input class="form-control" type="date" name="birth_date" required /></div>
-          <div class="col-md-6"><input class="form-control" name="height_cm" type="number" step="0.1" placeholder="Tinggi badan (cm)" required /></div>
           <div class="col-md-6"><input class="form-control" name="body_weight_kg" type="number" step="0.1" placeholder="Berat badan (kg)" required /></div>
         </div>
       </section>
@@ -80,22 +77,32 @@
 
       <section class="coach-panel" data-step="5">
         <h3 class="h6 mb-3">Preferensi makanan</h3>
-        <div class="row g-2">
-          <div class="col-md-6"><input class="form-control" name="food_restriction" placeholder="Makanan yang dihindari (contoh: udang)" /></div>
-          <div class="col-md-3">
-            <select class="form-select" name="food_category">
-              <option value="allergy">Alergi</option>
-              <option value="disliked">Tidak suka</option>
-              <option value="intolerance">Intoleransi</option>
-              <option value="religious">Religius</option>
-            </select>
+        <p class="small text-muted mb-2">Bisa tambah lebih dari satu preferensi.</p>
+        <div id="food-pref-list" class="d-grid gap-2">
+          <div class="row g-2 food-pref-row">
+            <div class="col-md-5"><input class="form-control" data-food-name placeholder="Contoh: udang, seledri, daun bawang" /></div>
+            <div class="col-md-3">
+              <select class="form-select" data-food-category>
+                <option value="allergy">Alergi</option>
+                <option value="disliked">Tidak suka</option>
+                <option value="intolerance">Intoleransi</option>
+                <option value="religious">Religius</option>
+                <option value="liked">Disukai</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" data-food-severity>
+                <option value="hard">Wajib hindari</option>
+                <option value="soft">Prefer hindari</option>
+              </select>
+            </div>
+            <div class="col-md-1 d-grid">
+              <button type="button" class="btn btn-outline-danger btn-remove-food-pref" title="Hapus">-</button>
+            </div>
           </div>
-          <div class="col-md-3">
-            <select class="form-select" name="food_severity">
-              <option value="hard">Wajib hindari</option>
-              <option value="soft">Prefer hindari</option>
-            </select>
-          </div>
+        </div>
+        <div class="mt-2">
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-food-pref">+ Tambah Preferensi</button>
         </div>
       </section>
 
@@ -132,19 +139,21 @@
         <h3 class="h6 mb-3">Aktifkan AI Coach Premium (Opsional)</h3>
         <div class="row g-2">
           <div class="col-md-6">
+            <label class="small text-muted">Provider AI</label>
             <select class="form-select" name="ai_provider">
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
               <option value="gemini">Gemini</option>
             </select>
           </div>
-          <div class="col-md-6"><input class="form-control" name="api_key_ref" placeholder="keychain:fitdiscipline_apikey" /></div>
-          <div class="col-md-6"><input class="form-control" name="fitness_level" type="number" min="1" max="5" value="1" /></div>
           <div class="col-md-6">
-            <select class="form-select" name="fitness_source">
-              <option value="onboarding">onboarding</option>
-              <option value="manual">manual</option>
-            </select>
+            <label class="small text-muted">Referensi API Key (opsional)</label>
+            <input class="form-control" name="api_key_ref" placeholder="keychain:fitdiscipline_apikey" />
+          </div>
+          <div class="col-12">
+            <p class="small text-muted mb-0">
+              Level kebugaran awal dan sumber snapshot akan diisi otomatis oleh sistem saat onboarding.
+            </p>
           </div>
         </div>
       </section>

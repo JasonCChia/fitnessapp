@@ -1,6 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, redirect, session, url_for
 from blueprints.admin import admin_bp
 from blueprints.ai import ai_bp
+from blueprints.api.ai_logs import ai_logs_bp
 from blueprints.api.ai_config import ai_config_bp
 from blueprints.api.plans import plans_bp
 from blueprints.api.reviews import reviews_bp
@@ -12,6 +13,7 @@ from blueprints.health import health_bp
 from blueprints.setting.page1 import setting_bp
 from blueprints.user._page import user_bp
 from config import Config
+from services.user import user_service
 
 
 def create_app():
@@ -30,6 +32,7 @@ def create_app():
     app.register_blueprint(plans_bp)
     app.register_blueprint(tracking_bp)
     app.register_blueprint(ai_config_bp)
+    app.register_blueprint(ai_logs_bp)
     app.register_blueprint(reviews_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
@@ -38,7 +41,16 @@ def create_app():
 
     @app.get("/")
     def index():
-        return render_template("user/home.html")
+        user_id = session.get("user_id")
+        if user_id:
+            user = user_service.get_user(user_id)
+            if not user:
+                session.pop("user_id", None)
+                return redirect(url_for("user.login_page"))
+            if not user.get("onboarding_done"):
+                return redirect(url_for("user.onboarding_page"))
+            return redirect(url_for("user.home_page"))
+        return redirect(url_for("user.login_page"))
 
     return app
 

@@ -1,13 +1,20 @@
-from flask import g, request
+from flask import g, request, session
 
 from core.responses.api_response import error
 from services.auth import auth_service
 
 
 def get_authenticated_user_id():
+    session_user_id = session.get("user_id")
+    if isinstance(session_user_id, str) and session_user_id:
+        g.current_user_id = session_user_id
+        return session_user_id, None
+
     auth_header = request.headers.get("Authorization", "")
+    if not auth_header:
+        return None, error("Authentication required", 401)
     if not auth_header.startswith("Bearer "):
-        return None, error("Missing or invalid Authorization header", 401)
+        return None, error("Invalid Authorization header", 401)
 
     token = auth_header.removeprefix("Bearer ").strip()
     if not token:

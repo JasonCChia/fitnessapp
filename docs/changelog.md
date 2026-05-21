@@ -11,3 +11,11 @@
 - Added route guard so `/api/users/<user_id>/...` can only be accessed by the token owner.
 - Updated `GET /api/users` behavior to return only current authenticated user.
 - Updated docs and guidance flow to include login-first app flow.
+
+## 2026-05-21 - AI Request Token Logging
+- Added table `ai_request_logs` for per-user AI request audit logging.
+- Added fields for token usage: `input_tokens`, `output_tokens`, and `total_tokens`.
+- Added migration file: `db/migrations/20260521_create_ai_request_logs.sql`.
+- Added endpoints:
+  - `POST /api/users/<user_id>/ai-request-logs`
+  - `GET /api/users/<user_id>/ai-request-logs`

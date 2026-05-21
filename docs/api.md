@@ -51,6 +51,10 @@
 - `GET /api/users/<user_id>/ai-prompts`
 - `PUT /api/users/<user_id>/ai-prompts/<method_name>`
 
+## AI Request Logs
+- `POST /api/users/<user_id>/ai-request-logs`
+- `GET /api/users/<user_id>/ai-request-logs`
+
 ## Auth Rules
 - All `/api/users/<user_id>/...` endpoints require `Authorization: Bearer <token>`.
 - `user_id` in path must match token owner; cross-user access is blocked (`403`).

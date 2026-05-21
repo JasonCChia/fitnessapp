@@ -1,3 +1,4 @@
+from models.ai_request_log import AI_REQUEST_LOGS_TABLE
 from models.ai_prompt_config import AI_PROMPT_CONFIGS_TABLE
 from models.base import TableDefinition
 from models.day_score import DAY_SCORES_TABLE
@@ -23,6 +24,7 @@ ALL_TABLES: tuple[TableDefinition, ...] = (
     MEAL_PLANS_TABLE,
     MEAL_LOGS_TABLE,
     DAY_SCORES_TABLE,
+    AI_REQUEST_LOGS_TABLE,
     AI_PROMPT_CONFIGS_TABLE,
 )
 

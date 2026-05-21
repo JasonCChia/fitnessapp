@@ -100,6 +100,10 @@ AI Prompt Config:
 - `GET /api/users/<user_id>/ai-prompts`
 - `PUT /api/users/<user_id>/ai-prompts/<method_name>`
 
+AI Request Logs:
+- `POST /api/users/<user_id>/ai-request-logs`
+- `GET /api/users/<user_id>/ai-request-logs`
+
 ## 5. Notes
 
 - Endpoint `/api/users/<user_id>/...` wajib pakai `Authorization: Bearer <token>`.

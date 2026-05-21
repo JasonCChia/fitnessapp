@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const page = document.body.dataset.page || "generic";
   const USER_KEY = "fitdiscipline_user_id";
 
@@ -16,6 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const toNum = (value) => (value === "" || value === null || value === undefined ? null : Number(value));
+  const calculateAge = (birthDate) => {
+    if (!birthDate) return null;
+    const dob = new Date(birthDate);
+    if (Number.isNaN(dob.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age -= 1;
+    }
+    return age >= 0 ? age : null;
+  };
 
   const api = async (url, method = "GET", body = null) => {
     const options = {
@@ -31,21 +43,51 @@ document.addEventListener("DOMContentLoaded", () => {
     return json;
   };
 
+  let sessionUserId = "";
+  let sessionUser = null;
+
   const saveUserId = (userId) => {
     if (!userId) return;
     localStorage.setItem(USER_KEY, userId);
+    sessionUserId = userId;
   };
 
-  const loadUserId = () => localStorage.getItem(USER_KEY) || "";
+  const loadUserId = () => sessionUserId || localStorage.getItem(USER_KEY) || "";
+
+  const lockUserInput = (selector, userId) => {
+    const input = qs(selector);
+    if (!input) return;
+    input.value = userId;
+    input.readOnly = true;
+  };
 
   const hydrateUserInputs = () => {
     const userId = loadUserId();
     if (!userId) return;
+
     qsa("input[name='user_id']").forEach((el) => {
-      if (!el.value) el.value = userId;
+      el.value = userId;
+      el.readOnly = true;
     });
-    const pageUser = qs("#review-user-id");
-    if (pageUser && !pageUser.value) pageUser.value = userId;
+    lockUserInput("#review-user-id", userId);
+    lockUserInput("#activate-workout-user-id", userId);
+    lockUserInput("#activate-meal-user-id", userId);
+    lockUserInput("#ctx-user-id", userId);
+  };
+
+  const syncSessionUser = async () => {
+    try {
+      const data = await api("/api/auth/me");
+      sessionUser = data?.data?.user || null;
+      const userId = sessionUser?.user_id;
+      if (!userId) return;
+      saveUserId(userId);
+      hydrateUserInputs();
+    } catch (error) {
+      if (window.location.pathname !== "/user/login") {
+        window.location.href = "/user/login";
+      }
+    }
   };
 
   const withError = async (fn, outputSelector) => {
@@ -56,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  hydrateUserInputs();
+  await syncSessionUser();
 
   if (page === "dashboard") {
     const ctxUser = qs("#ctx-user-id");
@@ -64,10 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ctxUser) ctxUser.value = loadUserId();
     if (info) info.textContent = loadUserId() ? `User aktif: ${loadUserId()}` : "Belum ada user aktif";
 
-    qs("#btn-save-user-id")?.addEventListener("click", () => {
-      saveUserId(ctxUser.value.trim());
-      info.textContent = ctxUser.value.trim() ? `User aktif: ${ctxUser.value.trim()}` : "Belum ada user aktif";
-    });
+    const saveBtn = qs("#btn-save-user-id");
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.title = "User ID mengikuti session login";
+    }
 
     qs("#btn-db-health")?.addEventListener("click", async () => {
       await withError(async () => {
@@ -105,53 +148,137 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStep();
     });
 
+    const fillOnboardingProfile = () => {
+      if (!sessionUser) return;
+      const age = calculateAge(sessionUser.birth_date);
+      setOutput("#onboarding-profile-name", sessionUser.name || "-");
+      setOutput("#onboarding-profile-email", sessionUser.email || "-");
+      setOutput("#onboarding-profile-age", age !== null ? `Umur: ${age}` : "Umur: -");
+      setOutput("#onboarding-profile-gender", `Gender: ${sessionUser.gender || "-"}`);
+      setOutput("#onboarding-profile-height", `Tinggi: ${sessionUser.height_cm ?? "-"} cm`);
+    };
+
+    const foodPrefList = qs("#food-pref-list");
+    const addFoodPrefBtn = qs("#btn-add-food-pref");
+
+    const createFoodPrefRow = () => {
+      const row = document.createElement("div");
+      row.className = "row g-2 food-pref-row";
+      row.innerHTML = `
+        <div class="col-md-5"><input class="form-control" data-food-name placeholder="Contoh: udang, seledri, daun bawang" /></div>
+        <div class="col-md-3">
+          <select class="form-select" data-food-category>
+            <option value="allergy">Alergi</option>
+            <option value="disliked">Tidak suka</option>
+            <option value="intolerance">Intoleransi</option>
+            <option value="religious">Religius</option>
+            <option value="liked">Disukai</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" data-food-severity>
+            <option value="hard">Wajib hindari</option>
+            <option value="soft">Prefer hindari</option>
+          </select>
+        </div>
+        <div class="col-md-1 d-grid">
+          <button type="button" class="btn btn-outline-danger btn-remove-food-pref" title="Hapus">-</button>
+        </div>
+      `;
+      return row;
+    };
+
+    addFoodPrefBtn?.addEventListener("click", () => {
+      if (!foodPrefList) return;
+      foodPrefList.appendChild(createFoodPrefRow());
+    });
+
+    foodPrefList?.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.classList.contains("btn-remove-food-pref")) return;
+      const rows = qsa(".food-pref-row");
+      const row = target.closest(".food-pref-row");
+      if (!row) return;
+      if (rows.length <= 1) {
+        const input = row.querySelector("[data-food-name]");
+        if (input instanceof HTMLInputElement) {
+          input.value = "";
+        }
+        return;
+      }
+      row.remove();
+    });
+
+    fillOnboardingProfile();
     renderStep();
 
     qs("#onboarding-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
-      const payload = {
-        user: {
-          name: form.name.value.trim(),
-          email: form.email.value.trim() || null,
-          gender: form.gender.value,
-          birth_date: form.birth_date.value,
-          height_cm: toNum(form.height_cm.value),
-          ai_provider: form.ai_provider?.value || "anthropic",
-          api_key_ref: form.api_key_ref?.value?.trim() || null,
-        },
-        preferences: {
-          sleep_target_hours: toNum(form.sleep_target_hours.value),
-          activity_level: form.activity_level.value,
-          goal_type: form.goal_type.value,
-          goal_weight_kg: toNum(form.goal_weight_kg.value),
-          goal_deadline_date: form.goal_deadline_date.value || null,
-        },
-        food_preferences: [],
-        fitness_capability: {
-          source: form.fitness_source.value,
-          fitness_level: toNum(form.fitness_level.value),
-          body_weight_kg: toNum(form.body_weight_kg.value),
-        },
-      };
-
-      if (form.food_restriction.value.trim()) {
-        payload.food_preferences.push({
-          category: form.food_category.value,
-          food_name: form.food_restriction.value.trim(),
-          severity: form.food_severity.value,
-        });
+      const userId = loadUserId();
+      if (!userId) {
+        setOutput("#onboarding-output", { error: "Session user tidak ditemukan. Silakan login ulang." });
+        return;
       }
 
+      const preferencesPayload = {
+        sleep_target_hours: toNum(form.sleep_target_hours.value),
+        activity_level: form.activity_level.value,
+        goal_type: form.goal_type.value,
+        goal_weight_kg: toNum(form.goal_weight_kg.value),
+        goal_deadline_date: form.goal_deadline_date.value || null,
+      };
+
+      const fitnessPayload = {
+        source: "onboarding",
+        fitness_level: 1,
+        body_weight_kg: toNum(form.body_weight_kg.value),
+      };
+      const foodPreferencePayloads = qsa(".food-pref-row")
+        .map((row) => {
+          const foodNameInput = row.querySelector("[data-food-name]");
+          const categorySelect = row.querySelector("[data-food-category]");
+          const severitySelect = row.querySelector("[data-food-severity]");
+          const foodName = foodNameInput instanceof HTMLInputElement ? foodNameInput.value.trim() : "";
+          const category = categorySelect instanceof HTMLSelectElement ? categorySelect.value : "disliked";
+          const severity = severitySelect instanceof HTMLSelectElement ? severitySelect.value : "soft";
+          if (!foodName) return null;
+          return {
+            food_name: foodName,
+            category,
+            severity,
+          };
+        })
+        .filter(Boolean);
+
       await withError(async () => {
-        const data = await api("/api/users/onboarding", "POST", payload);
-        setOutput("#onboarding-output", data);
-        const userId = data?.data?.user?.user_id;
-        if (userId) {
-          saveUserId(userId);
-          hydrateUserInputs();
-        }
+        const requests = [
+          api(`/api/users/${userId}/preferences`, "PUT", preferencesPayload),
+          api(`/api/users/${userId}/fitness-capabilities`, "POST", fitnessPayload),
+          api(`/api/users/${userId}`, "PATCH", {
+            ai_provider: form.ai_provider?.value || "anthropic",
+            api_key_ref: form.api_key_ref?.value?.trim() || null,
+            onboarding_done: true,
+          }),
+        ];
+
+        foodPreferencePayloads.forEach((pref) => {
+          requests.push(api(`/api/users/${userId}/food-preferences`, "POST", pref));
+        });
+
+        const results = await Promise.all(requests);
+        const [preferencesRes, fitnessRes, userRes, ...foodResponses] = results;
+        setOutput("#onboarding-output", {
+          message: "Onboarding selesai",
+          user: userRes?.data,
+          preferences: preferencesRes?.data,
+          fitness_capability: fitnessRes?.data,
+          food_preferences: foodResponses.map((item) => item?.data).filter(Boolean),
+        });
+        window.location.href = "/user/home";
       }, "#onboarding-output");
+
     });
   }
 
